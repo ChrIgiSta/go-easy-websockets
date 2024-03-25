@@ -65,7 +65,7 @@ func (c *Client) AddRootCa(rootCA []byte) {
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		log.Warn(LogRegioWsClient, "error adding ca: %v", err)
+		_ = log.Warn(LogRegioWsClient, "error adding ca: %v", err)
 		return
 	}
 	if c.rootCAs == nil {
@@ -85,14 +85,14 @@ func (c *Client) ConnectAndServe(url string,
 	c.wg.Add(1)
 	defer c.wg.Done()
 
-	defer log.Debug(LogRegioWsServer, "serve exited")
+	defer func() { _ = log.Debug(LogRegioWsServer, "serve exited") }()
 
 	u, err := utils.StringToUrl(url)
 	if err != nil {
 		return err
 	}
 
-	log.Debug(LogRegioWsClient, "connecting to %s", u.String())
+	_ = log.Debug(LogRegioWsClient, "connecting to %s", u.String())
 
 	if utils.TlsScheme(u.Scheme) {
 		websocket.DefaultDialer.TLSClientConfig = &c.tlsConfig
@@ -107,7 +107,7 @@ func (c *Client) ConnectAndServe(url string,
 		if dailResp != nil {
 			respBody, _ = io.ReadAll(dailResp.Body)
 		}
-		log.Error(LogRegioWsClient, "dail<%v>: %v", err, string(respBody))
+		_ = log.Error(LogRegioWsClient, "dail<%v>: %v", err, string(respBody))
 		return err
 	}
 
@@ -133,7 +133,7 @@ func (c *Client) ConnectAndServe(url string,
 }
 
 func (c *Client) Disconnect() (err error) {
-	log.Debug(LogRegioWsClient, "interrupted")
+	_ = log.Debug(LogRegioWsClient, "interrupted")
 
 	defer c.wg.Wait()
 

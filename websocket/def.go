@@ -78,15 +78,15 @@ func NewEventsToChannel(messageChannel chan<- Message,
 }
 
 func (t *EventsToChannel) OnReceive(msg Message) {
-	log.Debug("Evnt2Channel", "onReceive: %v", msg)
+	_ = log.Debug("Evnt2Channel", "onReceive: %v", msg)
 	if t.messageChannel != nil {
 		t.messageChannel <- msg
 	} else {
-		log.Error("Evnt2Channel", "message channel is nil")
+		_ = log.Error("Evnt2Channel", "message channel is nil")
 	}
 }
 func (t *EventsToChannel) OnDisconnect(id int) {
-	log.Debug("Evnt2Channel", "onDisconnect: %v", id)
+	_ = log.Debug("Evnt2Channel", "onDisconnect: %v", id)
 	if t.eventChannel != nil {
 		t.eventChannel <- Event{
 			Err:  nil,
@@ -94,11 +94,11 @@ func (t *EventsToChannel) OnDisconnect(id int) {
 			Id:   id,
 		}
 	} else {
-		log.Error("Evnt2Channel", "event channel is nil")
+		_ = log.Error("Evnt2Channel", "event channel is nil")
 	}
 }
 func (t *EventsToChannel) OnConnect(id int) {
-	log.Debug("Evnt2Channel", "onConnect: %v", id)
+	_ = log.Debug("Evnt2Channel", "onConnect: %v", id)
 	if t.eventChannel != nil {
 		t.eventChannel <- Event{
 			Err:  nil,
@@ -106,11 +106,11 @@ func (t *EventsToChannel) OnConnect(id int) {
 			Id:   id,
 		}
 	} else {
-		log.Error("Evnt2Channel", "event channel is nil")
+		_ = log.Error("Evnt2Channel", "event channel is nil")
 	}
 }
 func (t *EventsToChannel) OnFailure(exited bool, err error) {
-	log.Debug("Evnt2Channel", "onFailure: %v", err)
+	_ = log.Debug("Evnt2Channel", "onFailure: %v", err)
 
 	fType := Failure
 	if exited {
@@ -124,6 +124,6 @@ func (t *EventsToChannel) OnFailure(exited bool, err error) {
 			Id:   -1,
 		}
 	} else {
-		log.Error("Evnt2Channel", "event channel is nil")
+		_ = log.Error("Evnt2Channel", "event channel is nil")
 	}
 }

@@ -83,7 +83,7 @@ func NewServer(url string,
 
 	u, err := utils.StringToUrl(url)
 	if err != nil {
-		log.Error(LogRegioWsServer, "invalid url: %v", err)
+		_ = log.Error(LogRegioWsServer, "invalid url: %v", err)
 		return nil
 	}
 
@@ -134,7 +134,7 @@ func (s *Server) clientHandler(w http.ResponseWriter, r *http.Request) {
 		for key, value := range s.authHeader.HeaderRequired {
 			valueGot := r.Header.Get(key)
 			if !s.validateHash(valueGot, value, s.authHeader.ValueHashAlgo) {
-				log.Debug(LogRegioWsServer, "not authorized")
+				_ = log.Debug(LogRegioWsServer, "not authorized")
 				w.WriteHeader(http.StatusUnauthorized)
 				// not authorized
 				return
@@ -145,16 +145,16 @@ func (s *Server) clientHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Info(LogRegioWsServer, "upgrade conn: %v", err)
+		_ = log.Info(LogRegioWsServer, "upgrade conn: %v", err)
 		return
 	}
 
 	clientId := getIdFromConn(conn)
 	s.clientPool.AddOrUpdate(clientId, conn)
 
-	log.Debug(LogRegioWsServer, "new client<%d> connected: %s",
+	_ = log.Debug(LogRegioWsServer, "new client<%d> connected: %s",
 		clientId, conn.RemoteAddr().String())
-	defer log.Debug(LogRegioWsServer, "client <%d> disconnected", clientId)
+	defer func() { _ = log.Debug(LogRegioWsServer, "client <%d> disconnected", clientId) }()
 
 	defer s.clientPool.Delete(clientId)
 	defer s.eventHandler.OnDisconnect(clientId)
@@ -164,12 +164,12 @@ func (s *Server) clientHandler(w http.ResponseWriter, r *http.Request) {
 		messageType, payload, err := conn.ReadMessage()
 
 		if err != nil {
-			log.Info(LogRegioWsServer,
+			_ = log.Info(LogRegioWsServer,
 				"read from client: %v. exit client handler", err)
 			return
 		}
 
-		log.Debug(LogRegioWsServer, "rx type <%d>: %s",
+		_ = log.Debug(LogRegioWsServer, "rx type <%d>: %s",
 			messageType, payload)
 
 		s.eventHandler.OnReceive(Message{
@@ -185,7 +185,7 @@ func (s *Server) ListenAndServe() (err error) {
 	var serverCert tls.Certificate
 
 	s.wg.Add(1)
-	defer log.Debug(LogRegioWsServer, "listener exited")
+	defer func() { _ = log.Debug(LogRegioWsServer, "listener exited") }()
 	defer s.wg.Done()
 
 	mux := http.ServeMux{}
@@ -211,7 +211,7 @@ func (s *Server) ListenAndServe() (err error) {
 		s.server.TLSConfig = &tlsConfig
 	}
 
-	log.Info(LogRegioWsServer, "ws server start listening @ %v%v",
+	_ = log.Info(LogRegioWsServer, "ws server start listening @ %v%v",
 		s.address, s.path)
 
 	if !s.tls {
@@ -232,7 +232,7 @@ func (s *Server) Broadcast(message *Message) {
 	for _, id := range clientIds {
 		_, conn := s.clientPool.Get(id)
 		if conn == nil {
-			log.Warn(LogRegioWsServer, "no connection for id %v", id)
+			_ = log.Warn(LogRegioWsServer, "no connection for id %v", id)
 			s.clientPool.Delete(id)
 			continue
 		}
@@ -243,11 +243,11 @@ func (s *Server) Broadcast(message *Message) {
 			s.eventHandler.OnFailure(false,
 				fmt.Errorf("send to client <%v>: %v", id, err))
 
-			log.Error(LogRegioWsServer, "send<%v>: %v", id, err)
+			_ = log.Error(LogRegioWsServer, "send<%v>: %v", id, err)
 		}
 	}
 	if len(clientIds) < 1 {
-		log.Debug(LogRegioWsServer, "no clients connected")
+		_ = log.Debug(LogRegioWsServer, "no clients connected")
 	}
 }
 

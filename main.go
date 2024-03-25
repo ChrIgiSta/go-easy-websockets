@@ -166,7 +166,7 @@ func connect(serverAddress string, skipValidation bool) (err error) {
 		txt := scanner.Text()
 		switch txt {
 		case "exit":
-			client.Disconnect()
+			_ = client.Disconnect()
 			done = true
 		default:
 			err = client.SendTxt([]byte(txt))

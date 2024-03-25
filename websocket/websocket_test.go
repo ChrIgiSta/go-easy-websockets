@@ -57,13 +57,15 @@ func TestWebsocketNoTls(t *testing.T) {
 		ValueHashAlgo: HashAlgoNone,
 	})
 
-	go server.ListenAndServe()
+	go func() { _ = server.ListenAndServe() }()
 
 	time.Sleep(2 * time.Second)
 
-	go client.ConnectAndServe("ws://localhost:33221/testPath", map[string]string{
-		"Token": "12345",
-	})
+	go func() {
+		_ = client.ConnectAndServe("ws://localhost:33221/testPath", map[string]string{
+			"Token": "12345",
+		})
+	}()
 
 	time.Sleep(1 * time.Second)
 
@@ -101,7 +103,10 @@ func TestWebsocketNoTls(t *testing.T) {
 		t.Error("wrong msg client->server: ", string(msg.Data))
 	}
 
-	client.Disconnect()
+	err = client.Disconnect()
+	if err != nil {
+		t.Error(err)
+	}
 
 	time.Sleep(1 * time.Second)
 	server.Close()
@@ -144,11 +149,13 @@ func TestWebsocketTls(t *testing.T) {
 	client.AddRootCa(cert)
 	client.DisableCommonNameCheck() // Doesn't work ...
 
-	go server.ListenAndServe()
+	go func() { _ = server.ListenAndServe() }()
 
 	time.Sleep(2 * time.Second) // wait for server
 
-	go client.ConnectAndServe("wss://localhost:33221/testPath", nil)
+	go func() {
+		_ = client.ConnectAndServe("wss://localhost:33221/testPath", nil)
+	}()
 
 	evnt := <-sEvntCh
 	if evnt.Type == Connect {
@@ -157,7 +164,10 @@ func TestWebsocketTls(t *testing.T) {
 		t.Error("no connected event received")
 	}
 
-	client.Disconnect()
+	err = client.Disconnect()
+	if err != nil {
+		t.Error(err)
+	}
 
 	time.Sleep(1 * time.Second)
 	server.Close()
